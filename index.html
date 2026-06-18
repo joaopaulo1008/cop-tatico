@@ -147,6 +147,24 @@
     </label>
 
     <label class="basemap-row">
+      <input type="radio" name="basemap" value="google_sat">
+      <span class="basemap-thumb" style="background:linear-gradient(135deg,#1a3a1a,#2a5a2a)"></span>
+      <span class="basemap-label">Google Satélite</span>
+    </label>
+
+    <label class="basemap-row">
+      <input type="radio" name="basemap" value="google_hybrid">
+      <span class="basemap-thumb" style="background:linear-gradient(135deg,#1a3a1a,#4a8af5)"></span>
+      <span class="basemap-label">Google Híbrido</span>
+    </label>
+
+    <label class="basemap-row">
+      <input type="radio" name="basemap" value="bdgex">
+      <span class="basemap-thumb" style="background:linear-gradient(135deg,#c8b87a,#8ac890)"></span>
+      <span class="basemap-label">BDGEx 1:50.000 (EB)</span>
+    </label>
+
+    <label class="basemap-row">
       <input type="radio" name="basemap" value="hybrid">
       <span class="basemap-thumb" style="background:linear-gradient(135deg,#1a2a1a,#7ab8f5)"></span>
       <span class="basemap-label">Híbrido (Sat+Labels)</span>
@@ -218,6 +236,20 @@ const BASEMAPS = {
   }),
   satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     attribution:'© Esri', maxZoom:18
+  }),
+  google_sat: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+    attribution:'© Google', maxZoom:20
+  }),
+  google_hybrid: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    attribution:'© Google', maxZoom:20
+  }),
+  bdgex: L.tileLayer.wms('http://bdgex.eb.mil.br/mapcache', {
+    layers:      'ctm50',
+    format:      'image/png',
+    transparent: true,
+    attribution: '© BDGEx / Exército Brasileiro',
+    crs:         L.CRS.EPSG4326,
+    maxZoom:     18,
   }),
   hybrid: L.layerGroup([
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
