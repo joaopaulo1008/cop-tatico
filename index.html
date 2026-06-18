@@ -381,13 +381,12 @@ function criarPopup(props) {
 //   1. Exporte do QGIS como GeoJSON e commite no repositório
 //   2. Adicione uma entrada neste array:
 const EXTRA_LAYERS = [
-  // Exemplo (descomente e ajuste quando tiver o arquivo):
-  // {
-  //   nome: 'Área de Operações',
-  //   arquivo: 'area_operacoes.geojson',
-  //   cor: '#ff8800',
-  //   tipo: 'polygon',  // 'polygon', 'line' ou 'point'
-  // },
+  {
+    nome: 'Limites e Eixos',
+    arquivo: 'man5bdacbld.geojson',
+    cor: '#4a90d9',
+    tipo: 'line',
+  },
 ];
 
 const REPO_RAW = 'https://raw.githubusercontent.com/joaopaulo1008/cop-tatico/main/';
