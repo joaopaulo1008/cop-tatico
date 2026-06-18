@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COP Tático</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #1a1f2e;
+      color: #e8eaf0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Barra superior ─────────────────────────────────────────────── */
+    #topbar {
+      background: #0d1b2a;
+      border-bottom: 2px solid #2a4a6b;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 12px;
+    }
+    #topbar h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #a8c8e8;
+      text-transform: uppercase;
+    }
+    #status-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+    }
+    #last-update {
+      color: #7a9ab8;
+    }
+    #update-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4caf50;
+      display: inline-block;
+      margin-right: 4px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
+    #contadores {
+      display: flex;
+      gap: 8px;
+    }
+    .cnt {
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .cnt-amigo   { background: #1a3a5c; color: #7ab8f5; border: 1px solid #2a5a8c; }
+    .cnt-hostil  { background: #5c1a1a; color: #f57a7a; border: 1px solid #8c2a2a; }
+    .cnt-neutro  { background: #1a3a1a; color: #7af57a; border: 1px solid #2a6c2a; }
+    .cnt-desc    { background: #3a3a1a; color: #f5e07a; border: 1px solid #6c5a2a; }
+
+    /* ── Mapa ────────────────────────────────────────────────────────── */
+    #map {
+      flex: 1;
+      width: 100%;
+    }
+
+    /* ── Controles de camada ────────────────────────────────────────── */
+    #layer-control {
+      position: absolute;
+      top: 58px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(13, 27, 42, 0.92);
+      border: 1px solid #2a4a6b;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      min-width: 150px;
+    }
+    #layer-control h3 {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #7a9ab8;
+      margin-bottom: 8px;
+    }
+    .layer-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+    .layer-row input { cursor: pointer; }
+    .layer-dot {
+      width: 10px; height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    /* ── Popup ──────────────────────────────────────────────────────── */
+    .popup-content {
+      font-size: 13px;
+      min-width: 200px;
+    }
+    .popup-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #ddd;
+    }
+    .popup-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .popup-label {
+      color: #666;
+      min-width: 80px;
+      font-size: 12px;
+    }
+    .popup-value { font-size: 12px; }
+    .badge-host {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* ── Info rodapé ────────────────────────────────────────────────── */
+    #footer {
+      background: #0d1b2a;
+      border-top: 1px solid #2a4a6b;
+      padding: 4px 16px;
+      font-size: 11px;
+      color: #4a6a8a;
+      text-align: center;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1>🗺 COP Tático</h1>
+  <div id="status-bar">
+    <div id="contadores">
+      <span class="cnt cnt-amigo"  id="cnt-amigo">F: 0</span>
+      <span class="cnt cnt-hostil" id="cnt-hostil">I: 0</span>
+      <span class="cnt cnt-neutro" id="cnt-neutro">N: 0</span>
+      <span class="cnt cnt-desc"   id="cnt-desc">D: 0</span>
+    </div>
+    <span id="last-update">
+      <span id="update-dot"></span>
+      Aguardando dados...
+    </span>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<div id="layer-control">
+  <h3>Camadas</h3>
+  <label class="layer-row">
+    <input type="checkbox" id="chk-amigo" checked>
+    <span class="layer-dot" style="background:#4a90d9"></span>
+    Amigo
+  </label>
+  <label class="layer-row">
+    <input type="checkbox" id="chk-hostil" checked>
+    <span class="layer-dot" style="background:#e05252"></span>
+    Hostil
+  </label>
+  <label class="layer-row">
+    <input type="checkbox" id="chk-neutro" checked>
+    <span class="layer-dot" style="background:#4caf50"></span>
+    Neutro
+  </label>
+  <label class="layer-row">
+    <input type="checkbox" id="chk-desc" checked>
+    <span class="layer-dot" style="background:#f5c842"></span>
+    Desconhecido
+  </label>
+</div>
+
+<div id="footer">
+  Atualização automática a cada 2 minutos &nbsp;|&nbsp;
+  Símbologia APP-6D / MD33-C-01
+</div>
+
+<script>
+// ── Inicializa o mapa ─────────────────────────────────────────────────────────
+const map = L.map('map', {
+  center: [-22, -47],
+  zoom: 10,
+  zoomControl: true,
+});
+
+// Basemap OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19,
+}).addTo(map);
+
+// ── Cores e ícones por hostilidade ───────────────────────────────────────────
+const CORES = {
+  AMIGO:        { fill: '#c8dcff', stroke: '#1a5296', label: 'F' },
+  PRESUMIDO:    { fill: '#c8dcff', stroke: '#1a5296', label: 'F' },
+  HOSTIL:       { fill: '#ffd0d0', stroke: '#c0392b', label: 'I' },
+  SUSPEITO:     { fill: '#ffd0d0', stroke: '#c0392b', label: 'I' },
+  NEUTRO:       { fill: '#d0f0d0', stroke: '#27ae60', label: 'N' },
+  DESCONHECIDO: { fill: '#fff3c0', stroke: '#d4a017', label: 'D' },
+};
+
+function getCor(host) {
+  return CORES[host?.toUpperCase()] || CORES.DESCONHECIDO;
+}
+
+function criarIcone(feature) {
+  const props = feature.properties;
+  const host  = (props.hostilidade || 'DESCONHECIDO').toUpperCase();
+  const cor   = getCor(host);
+  const sigla = (props.designacao || '?').substring(0, 6);
+  const nat   = (props.natureza   || '').substring(0, 12);
+
+  // URL do símbolo milsymbol via servidor local do plugin APP-6D
+  // Como estamos num mapa web público, usamos um marcador SVG simples
+  // com a cor da hostilidade e a designação
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="52" viewBox="0 0 48 52">
+      <rect x="4" y="4" width="40" height="30" rx="3"
+            fill="${cor.fill}" stroke="${cor.stroke}" stroke-width="2.5"/>
+      <text x="24" y="22" text-anchor="middle" dominant-baseline="central"
+            font-family="Arial" font-size="9" font-weight="600"
+            fill="${cor.stroke}">${sigla}</text>
+      <circle cx="24" cy="48" r="3" fill="${cor.stroke}"/>
+      <line x1="24" y1="34" x2="24" y2="45" stroke="${cor.stroke}" stroke-width="1.5"/>
+    </svg>`;
+
+  return L.divIcon({
+    html: svg,
+    className: '',
+    iconSize:   [48, 52],
+    iconAnchor: [24, 48],
+    popupAnchor:[0, -48],
+  });
+}
+
+// ── Grupos de camadas ────────────────────────────────────────────────────────
+const grupos = {
+  AMIGO:        L.layerGroup().addTo(map),
+  HOSTIL:       L.layerGroup().addTo(map),
+  NEUTRO:       L.layerGroup().addTo(map),
+  DESCONHECIDO: L.layerGroup().addTo(map),
+};
+
+// Checkboxes de visibilidade
+const chks = {
+  AMIGO:        document.getElementById('chk-amigo'),
+  HOSTIL:       document.getElementById('chk-hostil'),
+  NEUTRO:       document.getElementById('chk-neutro'),
+  DESCONHECIDO: document.getElementById('chk-desc'),
+};
+
+Object.entries(chks).forEach(([host, chk]) => {
+  chk.addEventListener('change', () => {
+    if (chk.checked) map.addLayer(grupos[host]);
+    else             map.removeLayer(grupos[host]);
+  });
+});
+
+// ── Popup ────────────────────────────────────────────────────────────────────
+function badgeHost(host) {
+  const cores = {
+    AMIGO:'#1a5296;background:#c8dcff',
+    HOSTIL:'#c0392b;background:#ffd0d0',
+    NEUTRO:'#27ae60;background:#d0f0d0',
+    DESCONHECIDO:'#d4a017;background:#fff3c0',
+  };
+  const estilo = cores[(host||'').toUpperCase()] || cores.DESCONHECIDO;
+  return `<span class="badge-host" style="color:${estilo}">${host}</span>`;
+}
+
+function criarPopup(props) {
+  const campos = [
+    ['Designação',  props.designacao],
+    ['Hostilidade', badgeHost(props.hostilidade)],
+    ['Natureza',    props.natureza],
+    ['Escalão',     props.escalao],
+    ['Escalão Sup', props.escalao_sup],
+    ['Situação',    props.situacao],
+    ['HQ/TF',       props.hqtf],
+    ['Mobilidade',  props.mobilidade],
+    ['Fonte',       props.fonte],
+    ['Timestamp',   props.timestamp_edicao],
+    ['Obs',         props.obs],
+  ].filter(([_, v]) => v && v.trim() !== '');
+
+  return `
+    <div class="popup-content">
+      <div class="popup-title">${props.id || '—'} · ${props.designacao || '—'}</div>
+      ${campos.map(([l, v]) =>
+        `<div class="popup-row">
+          <span class="popup-label">${l}</span>
+          <span class="popup-value">${v}</span>
+        </div>`
+      ).join('')}
+    </div>`;
+}
+
+// ── Carrega GeoJSON ──────────────────────────────────────────────────────────
+let bounds_iniciais = true;
+const GEOJSON_URL =
+  'https://raw.githubusercontent.com/joaopaulo1008/cop-tatico/main/cop_tatico.geojson';
+
+function contarPorHostilidade(features) {
+  const c = { F:0, I:0, N:0, D:0 };
+  features.forEach(f => {
+    const h = (f.properties.hostilidade || '').toUpperCase();
+    if      (['AMIGO','PRESUMIDO'].includes(h))       c.F++;
+    else if (['HOSTIL','SUSPEITO'].includes(h))       c.I++;
+    else if (h === 'NEUTRO')                          c.N++;
+    else                                              c.D++;
+  });
+  document.getElementById('cnt-amigo').textContent  = `F: ${c.F}`;
+  document.getElementById('cnt-hostil').textContent = `I: ${c.I}`;
+  document.getElementById('cnt-neutro').textContent = `N: ${c.N}`;
+  document.getElementById('cnt-desc').textContent   = `D: ${c.D}`;
+}
+
+function carregarDados() {
+  // Cache-bust para forçar releitura a cada chamada
+  fetch(`${GEOJSON_URL}?t=${Date.now()}`)
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then(geojson => {
+      // Limpa camadas
+      Object.values(grupos).forEach(g => g.clearLayers());
+
+      const features = geojson.features || [];
+      contarPorHostilidade(features);
+
+      features.forEach(feature => {
+        const props = feature.properties;
+        const host  = (props.hostilidade || 'DESCONHECIDO').toUpperCase();
+        const grupo = grupos[host] || grupos.DESCONHECIDO;
+
+        const marcador = L.marker(
+          [feature.geometry.coordinates[1],
+           feature.geometry.coordinates[0]],
+          { icon: criarIcone(feature) }
+        ).bindPopup(criarPopup(props), { maxWidth: 280 });
+
+        grupo.addLayer(marcador);
+      });
+
+      // Centraliza no primeiro carregamento
+      if (bounds_iniciais && features.length > 0) {
+        const coords = features.map(f => [
+          f.geometry.coordinates[1],
+          f.geometry.coordinates[0]
+        ]);
+        map.fitBounds(coords, { padding: [40, 40] });
+        bounds_iniciais = false;
+      }
+
+      // Atualiza status
+      const agora = new Date().toLocaleTimeString('pt-BR');
+      document.getElementById('last-update').innerHTML =
+        `<span id="update-dot"></span>Atualizado: ${agora} · ${features.length} elementos`;
+    })
+    .catch(err => {
+      document.getElementById('last-update').innerHTML =
+        `<span id="update-dot" style="background:#e05252"></span>Erro: ${err.message}`;
+      console.warn('Erro ao carregar GeoJSON:', err);
+    });
+}
+
+// Carrega imediatamente e depois a cada 2 minutos
+carregarDados();
+setInterval(carregarDados, 120_000);
+</script>
+</body>
+</html>
