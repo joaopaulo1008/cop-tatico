@@ -1,13 +1,13 @@
 {
   "type": "FeatureCollection",
-  "generated": "2026-06-17 23:30:25",
+  "generated": "2026-06-18 05:13:42",
   "total": 23,
   "features": [
     {
       "geometry": {
         "coordinates": [
-          -50.30125,
-          -26.174015
+          -50.539361,
+          -26.254948
         ],
         "type": "Point"
       },
@@ -29,9 +29,9 @@
         "segue_ativo": "Sim",
         "sidc": "10031000141213010000",
         "situacao": "CONFIRMADA",
-        "timestamp_edicao": "2026-06-17 11:16:44",
-        "utm_e": 569827.0,
-        "utm_n": 7104857.0,
+        "timestamp_edicao": "2026-06-18 07:45:20",
+        "utm_e": 546000.0,
+        "utm_n": 7096000.0,
         "natureza_code": "121301"
       },
       "type": "Feature"
@@ -39,8 +39,8 @@
     {
       "geometry": {
         "coordinates": [
-          -50.295286,
-          -26.173977
+          -50.527156,
+          -26.25201
         ],
         "type": "Point"
       },
@@ -62,9 +62,9 @@
         "segue_ativo": "Sim",
         "sidc": "10031000131213010000",
         "situacao": "CONFIRMADA",
-        "timestamp_edicao": "2026-06-17 11:15:33",
-        "utm_e": 570423.0,
-        "utm_n": 7104858.0,
+        "timestamp_edicao": "2026-06-18 07:44:55",
+        "utm_e": 547220.0,
+        "utm_n": 7096321.0,
         "natureza_code": "121301"
       },
       "type": "Feature"
@@ -72,8 +72,8 @@
     {
       "geometry": {
         "coordinates": [
-          -50.299524,
-          -26.191488
+          -50.533158,
+          -26.253546
         ],
         "type": "Point"
       },
@@ -95,9 +95,9 @@
         "segue_ativo": "Sim",
         "sidc": "10031000141211000000",
         "situacao": "CONFIRMADA",
-        "timestamp_edicao": "2026-06-17 11:15:51",
-        "utm_e": 569989.0,
-        "utm_n": 7102921.0,
+        "timestamp_edicao": "2026-06-18 07:45:57",
+        "utm_e": 546620.0,
+        "utm_n": 7096153.0,
         "natureza_code": "121100"
       },
       "type": "Feature"
